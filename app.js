@@ -59,23 +59,24 @@ var UIController = (function(){
     
     var AddListItem = function(obj)
     {
-        var inputHTML, outputHTML;
+        var inputHTML, outputHTML, element;
         
         if (obj.type==='inc'){
-        inputHTML = '<div class="item clearfix" id="income-0"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-            
-        outputHTML = inputHTML.replace('%description%', obj.description).replace('%amount%', obj.amount);
-        
-        DOM().incomeList.insertAdjacentHTML("beforeend", outputHTML);    
-            
+            element = DOMString.strIncomeList;
+
+            inputHTML = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
         } else if (obj.type==='exp'){
-        inputHTML = '<div class="item clearfix" id="expense-0"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';    
-            
-        outputHTML = inputHTML.replace('%description%', obj.description).replace('%amount%', obj.amount);
-            
-        DOM().expenseList.insertAdjacentHTML("beforeend", outputHTML);    
+
+            element = DOMString.strExpenseList;    
+
+            inputHTML = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';    
         }
         
+        // Replace the placeholder text with data
+        outputHTML = inputHTML.replace('%description%', obj.description).replace('%amount%', obj.amount).replace('%id%', obj.id);
+        
+        // insert HTML in the DOM
+        document.querySelector(element).insertAdjacentHTML("beforeend", outputHTML);   
         
         
         
@@ -93,12 +94,13 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
     // event listeners
     var InitHandlers = function(){
         UICtrl.DOM().btnAdd.addEventListener('click',AddAmountCallBack);
+        document.querySelector(UICtrl.DOMString.strAmount).addEventListener('keyup', EnterCallBack(event){
+            if (event.keyCode===13)
+            AddAmountCallBack();
+        });
     }
     
-    
-    
-    
-    
+        
     function AddAmountCallBack(){
         var entry;
         var DOM = UICtrl.DOM();
