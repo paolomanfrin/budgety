@@ -4,16 +4,22 @@ var BudgetController = (function(){
     var expensesList = [];
     var entryType = {EXPENSE: 'exp', INCOME: 'inc'};
     
+    //var totIncome: function(){
+    //     var totIncome = incomeList.reduce(function(a,b){return a + b.amount},0);
+    //}
+    
     return {
         
         TotalIncome: function(){
             var totIncome = incomeList.reduce(function(a,b){return a + b.amount},0);
-            console.log('total income: ' + totIncome);
+            return totIncome;
+            //console.log('total income: ' + totIncome);
         },
         
         TotalExpenses: function(){
             var totExpenses = expensesList.reduce(function(a,b){return a + b.amount},0);
-            console.log('total expenses: ' + totExpenses);
+            return totExpenses;
+            //console.log('total expenses: ' + totExpenses);
         },
         
         AddEntry: function(type, description, amount){
@@ -30,7 +36,16 @@ var BudgetController = (function(){
                 return incomeList[newIncIdx];
             }
             
-        }      
+        },
+        
+        Budget: function(){
+            return {
+                value: this.TotalIncome() - this.TotalExpenses(),
+                income: this.TotalIncome(),
+                expense: this.TotalExpenses(),
+                percentage: this.TotalIncome() < 0? -1 : Math.round(this.TotalExpenses()*100/this.TotalIncome())
+            };
+        }
 }
     
 })();
@@ -43,7 +58,11 @@ var UIController = (function(){
         strAdd: '.add__btn',
         strType: '.add__type',
         strIncomeList: '.income__list',
-        strExpenseList: '.expenses__list'
+        strExpenseList: '.expenses__list',
+        strBudgetValue: '.budget__value',
+        strBudgetIncome: '.budget__income--value',
+        strBudgetExpense: '.budget__expenses--value',
+        strBudgetPercentage: '.budget__expenses--percentage'
     }; 
     
     var DOM = function() {
@@ -78,11 +97,20 @@ var UIController = (function(){
         // insert HTML in the DOM
         document.querySelector(element).insertAdjacentHTML("beforeend", outputHTML);   
         
+    }
+    
+    var RefreshBudget = function(budget){
+        document.querySelector(DOMString.strBudgetValue).innerHTML = budget.value;
+        document.querySelector(DOMString.strBudgetIncome).textContent = budget.income;
+        document.querySelector(DOMString.strBudgetExpense).textContent = budget.expense;
         
-        
+        if (isNaN(budget.percentage))
+            document.querySelector(DOMString.strBudgetPercentage).textContent = '---';
+        else
+            document.querySelector(DOMString.strBudgetPercentage).textContent = budget.percentage + '%';
     }
         
-    return { DOM, DOMString, AddListItem };
+    return { DOM, DOMString, AddListItem, RefreshBudget };
     
 })();
 
@@ -94,25 +122,34 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
     // event listeners
     var InitHandlers = function(){
         UICtrl.DOM().btnAdd.addEventListener('click',AddAmountCallBack);
-        document.querySelector(UICtrl.DOMString.strAmount).addEventListener('keyup', EnterCallBack(event){
+        document.querySelector(UICtrl.DOMString.strAmount).addEventListener('keyup', function(event){
             if (event.keyCode===13)
             AddAmountCallBack();
         });
+        
     }
     
         
     function AddAmountCallBack(){
-        var entry;
+        var entry, budget;
         var DOM = UICtrl.DOM();
         
-        console.log('desc/amount: ' +  DOM.description + ' / ' + DOM.amount);
+        console.log(DOM.amount);
+        if (isNaN(DOM.amount) || DOM.amount.length==0)
+            return;
+        
         entry = BudgetCtrl.AddEntry(DOM.type, DOM.description, DOM.amount);
         UICtrl.AddListItem(entry);
         
+        
+        budget = BudgetCtrl.Budget();
+        UICtrl.RefreshBudget(budget);
     }
     
     return {Init: function() { 
         InitHandlers();
+        
+        UICtrl.RefreshBudget(BudgetCtrl.Budget());
         }
     };
     
