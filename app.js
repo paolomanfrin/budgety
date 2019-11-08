@@ -1,7 +1,7 @@
 var BudgetController = (function(){
     
     var incomeList = [];
-    var expensesList = [];
+    var expensesList = []; // {id, type, description, amount}
     var entryType = {EXPENSE: 'exp', INCOME: 'inc'};
     
     //var totIncome: function(){
@@ -38,6 +38,30 @@ var BudgetController = (function(){
             
         },
         
+        RemoveEntry: function(entry){
+            
+            var entryTypeId = entry.split('-');
+            var type = entryTypeId[0] == 'income' ? 'inc' : 'exp';
+            var id = entryTypeId[1];
+            
+            console.log(type + ' / ' + id);
+            
+            if (type === entryType.INCOME) {
+                
+                incomeList = incomeList.filter(obj => {
+                    return obj.id.toString() !== id;
+                })
+                
+                console.log(incomeList);
+                
+            } else if (type === entryType.EXPENSE) {
+                expensesList = expensesList.filter(obj => {
+                    return obj.id.toString() !== id;
+                })
+            }
+                
+        },
+        
         Budget: function(){
             return {
                 value: this.TotalIncome() - this.TotalExpenses(),
@@ -62,7 +86,8 @@ var UIController = (function(){
         strBudgetValue: '.budget__value',
         strBudgetIncome: '.budget__income--value',
         strBudgetExpense: '.budget__expenses--value',
-        strBudgetPercentage: '.budget__expenses--percentage'
+        strBudgetPercentage: '.budget__expenses--percentage',
+        strContainer: '.container'
     }; 
     
     var DOM = function() {
@@ -72,7 +97,8 @@ var UIController = (function(){
                 btnAdd: document.querySelector(DOMString.strAdd),
                 type: document.querySelector(DOMString.strType).value,
                 incomeList: document.querySelector(DOMString.strIncomeList),
-                expenseList: document.querySelector(DOMString.strExpenseList)
+                expenseList: document.querySelector(DOMString.strExpenseList),
+                container: document.querySelector(DOMString.strContainer)
         }
     }
     
@@ -99,6 +125,12 @@ var UIController = (function(){
         
     }
     
+    var RemoveEntry = function(elementId)
+    {
+        document.getElementById(elementId).remove();
+        
+    }
+    
     var RefreshBudget = function(budget){
         document.querySelector(DOMString.strBudgetValue).innerHTML = budget.value;
         document.querySelector(DOMString.strBudgetIncome).textContent = budget.income;
@@ -110,7 +142,7 @@ var UIController = (function(){
             document.querySelector(DOMString.strBudgetPercentage).textContent = budget.percentage + '%';
     }
         
-    return { DOM, DOMString, AddListItem, RefreshBudget };
+    return { DOM, DOMString, AddListItem, RemoveEntry, RefreshBudget };
     
 })();
 
@@ -126,6 +158,7 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
             if (event.keyCode===13)
             AddAmountCallBack();
         });
+        UICtrl.DOM().container.addEventListener('click', RemoveAmountCallBack)
         
     }
     
@@ -144,6 +177,26 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
         
         budget = BudgetCtrl.Budget();
         UICtrl.RefreshBudget(budget);
+    }
+    
+    function RemoveAmountCallBack(event){
+        
+       console.log(event.target);
+        
+        if (event.target.className === 'ion-ios-close-outline'){
+            var element = event.target.closest('.item')
+            
+            // remove element from budget
+            BudgetCtrl.RemoveEntry(element.id);
+            
+            // remove element from UI
+            UICtrl.RemoveEntry(element.id);
+            
+            // refresh budget
+            budget = BudgetCtrl.Budget();
+            UICtrl.RefreshBudget(budget);
+            
+        }
     }
     
     return {Init: function() { 
