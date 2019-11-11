@@ -103,7 +103,8 @@ var UIController = (function(){
         strBudgetExpense: '.budget__expenses--value',
         strBudgetPercentage: '.budget__expenses--percentage',
         strContainer: '.container',
-        strPercentage: '.item__percentage'
+        strPercentage: '.item__percentage',
+        strMonth: '.budget__title--month'
     }; 
     
     var DOM = function() {
@@ -187,8 +188,17 @@ var UIController = (function(){
         });
         */
     }
+    
+    var RefreshMonth = function(){
+        var datum, months;
         
-    return { DOM, DOMString, AddListItem, RemoveEntry, RefreshBudget, RefreshPercentage };
+        datum = new Date(Date.now());
+        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        console.log("refresh month");
+        document.querySelector(DOMString.strMonth).innerHTML = months[datum.getMonth()] + " " + datum.getFullYear();
+    }
+    
+    return { DOM, DOMString, AddListItem, RemoveEntry, RefreshBudget, RefreshPercentage, RefreshMonth };
     
 })();
 
@@ -251,7 +261,7 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
     
     return {Init: function() { 
         InitHandlers();
-        
+        UICtrl.RefreshMonth();
         UICtrl.RefreshBudget(BudgetCtrl.Budget());
         }
     };
