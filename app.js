@@ -3,10 +3,8 @@ var BudgetController = (function(){
     var incomeList = [];
     var expensesList = []; // {id, type, description, amount}
     var entryType = {EXPENSE: 'exp', INCOME: 'inc'};
+    console.log(expensesList);
     
-    //var totIncome: function(){
-    //     var totIncome = incomeList.reduce(function(a,b){return a + b.amount},0);
-    //}
     
     return {
         
@@ -23,16 +21,16 @@ var BudgetController = (function(){
         },
         
         AddEntry: function(type, description, amount){
-            var id;
+            var id, percentage = -1;
             amount = parseFloat(amount);
             if (type == entryType.EXPENSE) {
                 id = expensesList.length == 0 ? 0 : expensesList[expensesList.length-1].id+1;
-                var newExpIdx = expensesList.push({id, type, description, amount})-1;
+                var newExpIdx = expensesList.push({id, type, description, amount, percentage})-1;
                 return expensesList[newExpIdx];
             }
             else {
                 id = incomeList.length == 0 ? 0 : incomeList[incomeList.length-1].id+1;
-                var newIncIdx = incomeList.push({id, type, description, amount})-1;
+                var newIncIdx = incomeList.push({id, type, description, amount, percentage})-1;
                 return incomeList[newIncIdx];
             }
             
@@ -62,17 +60,34 @@ var BudgetController = (function(){
                 
         },
         
+        UpdatePercentages: function(){
+            var budget = this.TotalIncome();
+            
+            function CalcPerc(item){
+                item.percentage = Math.round(item.amount*100/budget);
+            };
+            
+            expensesList.forEach(CalcPerc);
+        },
+        
         Budget: function(){
+            this.UpdatePercentages();
             return {
                 value: this.TotalIncome() - this.TotalExpenses(),
                 income: this.TotalIncome(),
                 expense: this.TotalExpenses(),
-                percentage: this.TotalIncome() < 0? -1 : Math.round(this.TotalExpenses()*100/this.TotalIncome())
+                percentage: this.TotalIncome() < 0? -1 : Math.round(this.TotalExpenses()*100/(this.TotalIncome())),
+                GetExpense: function(idx){return expensesList[idx]}
+                
             };
         }
-}
+        
+       
+        
+    }
     
 })();
+
 
 var UIController = (function(){
     
@@ -87,7 +102,8 @@ var UIController = (function(){
         strBudgetIncome: '.budget__income--value',
         strBudgetExpense: '.budget__expenses--value',
         strBudgetPercentage: '.budget__expenses--percentage',
-        strContainer: '.container'
+        strContainer: '.container',
+        strPercentage: '.item__percentage'
     }; 
     
     var DOM = function() {
@@ -141,8 +157,38 @@ var UIController = (function(){
         else
             document.querySelector(DOMString.strBudgetPercentage).textContent = budget.percentage + '%';
     }
+    
+    var RefreshPercentage = function(budget){
         
-    return { DOM, DOMString, AddListItem, RemoveEntry, RefreshBudget };
+        // 1. retrieve the percentage elemens on UI
+        var nodeList = document.querySelectorAll(DOMString.strPercentage);
+        
+        // 3. update the elements on UI
+        var callback = function (item, index){
+            perc = budget.GetExpense(index).percentage;
+            item.textContent=perc+'%';
+        };
+        nodeList.forEach(callback);
+        
+        return nodeList;
+        
+        /*
+        // Sample 01
+        
+        var NodeListForEach = function(nodelist, callback){
+            
+            for(var idx=0; idx<nodeList.length; idx++){
+                callback(nodeList[idx], idx);
+            }
+        };
+        
+        NodeListForEach(nodeList, function(item, index){
+            item.textContent='xxx'+index;
+        });
+        */
+    }
+        
+    return { DOM, DOMString, AddListItem, RemoveEntry, RefreshBudget, RefreshPercentage };
     
 })();
 
@@ -177,6 +223,8 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
         
         budget = BudgetCtrl.Budget();
         UICtrl.RefreshBudget(budget);
+        
+        UICtrl.RefreshPercentage(budget);
     }
     
     function RemoveAmountCallBack(event){
@@ -196,6 +244,8 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
             budget = BudgetCtrl.Budget();
             UICtrl.RefreshBudget(budget);
             
+            // refresh percntage
+            UICtrl.RefreshPercentage(budget);
         }
     }
     
