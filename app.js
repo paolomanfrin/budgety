@@ -271,6 +271,8 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
         
         nodeList.forEach(ToggleStyle);
         
+        document.querySelector(UICtrl.DOMString.strAdd).classList.toggle('red');
+        
     }
     
     return {Init: function() { 
