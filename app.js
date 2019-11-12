@@ -216,6 +216,8 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
         });
         UICtrl.DOM().container.addEventListener('click', RemoveAmountCallBack)
         
+        document.querySelector(UICtrl.DOMString.strType).addEventListener('change', ChangeCallBack)
+        
     }
     
         
@@ -257,6 +259,18 @@ var GlobalController = (function(uiCtrl, bdgtCtrl){
             // refresh percntage
             UICtrl.RefreshPercentage(budget);
         }
+    }
+    
+    function ChangeCallBack(){
+        var nodeList;
+        nodeList = document.querySelectorAll(UICtrl.DOMString.strType + ", " + UICtrl.DOMString.strDescription + ", " +  UICtrl.DOMString.strAmount);
+        
+        ToggleStyle = function(item){
+            item.classList.toggle('red-focus');            
+        };
+        
+        nodeList.forEach(ToggleStyle);
+        
     }
     
     return {Init: function() { 
